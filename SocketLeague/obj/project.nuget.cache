@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "wd0XIrv9GetjDrmV5cSqiBcyY8R5CzPCNdhkx65SPo9txUpbmrHyy5mmq9PE+VsdbuZPWyeSfn7gP114DjKZlw==",
+  "dgSpecHash": "waH0CDYK0vD/5opNPcBJqgl5dq7mTB4cTKHIpUdIn9aWSpxrksy5upxvG0TuPpaNqvCYbiC4eKHUwHgLhM2vKw==",
   "success": true,
-  "projectFilePath": "C:\\Users\\melvi\\Documents\\GitHub\\IndaPlus\\SocketLeague\\SocketLeague.csproj",
+  "projectFilePath": "C:\\Users\\melvi\\Documents\\GitHub\\IndaPlus\\melvinbe-sockets\\SocketLeague\\SocketLeague.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\melvi\\.nuget\\packages\\monogame.content.builder.task\\3.8.1.303\\monogame.content.builder.task.3.8.1.303.nupkg.sha512",
     "C:\\Users\\melvi\\.nuget\\packages\\monogame.framework.desktopgl\\3.8.1.303\\monogame.framework.desktopgl.3.8.1.303.nupkg.sha512"

@@ -6,25 +6,23 @@ using System.Collections.Generic;
 
 namespace SocketLeague
 {
-    public abstract class Body
+    public abstract class Body : Sprite
     {
-        public Vector2 position;
+        public List<Collider> colliders = new List<Collider>();
+
         public Vector2 velocity;
 
         public bool isStatic;
 
-        public List<Collider> colliders = new List<Collider>();
-
-        public Body(Vector2 position)
+        public Body(Texture2D texture, Vector2 position)
+            : base(texture)
         {
             this.position = position;
         }
 
-        public virtual void Update(float deltaTime)
+        public override void Update(float deltaTime)
         {
             
         }
-
-        public abstract void Draw(SpriteBatch spriteBatch);
     }
 }

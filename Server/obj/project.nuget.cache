@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "wf6CHuVCg4eAMzJELaUloqJqw7mLWbXNWD8ep+DgWIXmTnGSqkIwQh5Xy0Ijiip69RWa/10y95+wxFE6jejp/Q==",
+  "dgSpecHash": "2TKdlKGjyAH9uD33VymQT6LInooWek56qPxJmXbBZJTLMxZOToZ2pfEj19/vuPo87mkxHlGL0SvF2JmCpjoyAg==",
   "success": true,
-  "projectFilePath": "C:\\Users\\melvi\\Documents\\GitHub\\IndaPlus\\Server\\Server.csproj",
+  "projectFilePath": "C:\\Users\\melvi\\Documents\\GitHub\\IndaPlus\\melvinbe-sockets\\Server\\Server.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\melvi\\.nuget\\packages\\monogame.content.builder.task\\3.8.1.303\\monogame.content.builder.task.3.8.1.303.nupkg.sha512",
     "C:\\Users\\melvi\\.nuget\\packages\\monogame.framework.desktopgl\\3.8.1.303\\monogame.framework.desktopgl.3.8.1.303.nupkg.sha512"

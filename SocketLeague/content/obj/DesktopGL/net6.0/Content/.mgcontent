@@ -4,7 +4,7 @@
   <Platform>DesktopGL</Platform>
   <Config />
   <SourceFiles>
-    <File>C:/Users/melvi/Documents/GitHub/IndaPlus/SocketLeague/content/textures/circle.png</File>
+    <File>C:/Users/melvi/Documents/GitHub/IndaPlus/melvinbe-sockets/SocketLeague/content/textures/circle.png</File>
   </SourceFiles>
   <DestFiles>
     <File xsi:nil="true" />

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <SourceFile>C:/Users/melvi/Documents/GitHub/IndaPlus/SocketLeague/content/textures/circle.png</SourceFile>
+  <SourceFile>C:/Users/melvi/Documents/GitHub/IndaPlus/melvinbe-sockets/SocketLeague/content/textures/circle.png</SourceFile>
   <SourceTime>2022-12-07T22:18:37.6423442+01:00</SourceTime>
-  <DestFile>C:/Users/melvi/Documents/GitHub/IndaPlus/SocketLeague/content/bin/DesktopGL/Content/textures/circle.xnb</DestFile>
-  <DestTime>2023-01-22T17:23:20.4336926+01:00</DestTime>
+  <DestFile>C:/Users/melvi/Documents/GitHub/IndaPlus/melvinbe-sockets/SocketLeague/content/bin/DesktopGL/Content/textures/circle.xnb</DestFile>
+  <DestTime>2023-01-22T22:03:49.3641605+01:00</DestTime>
   <Importer>TextureImporter</Importer>
   <ImporterTime>2022-07-26T13:44:56+02:00</ImporterTime>
   <Processor>TextureProcessor</Processor>

@@ -107,11 +107,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\melvi\\Documents\\GitHub\\IndaPlus\\SocketLeague\\SocketLeague.csproj",
+      "projectUniqueName": "C:\\Users\\melvi\\Documents\\GitHub\\IndaPlus\\melvinbe-sockets\\SocketLeague\\SocketLeague.csproj",
       "projectName": "SocketLeague",
-      "projectPath": "C:\\Users\\melvi\\Documents\\GitHub\\IndaPlus\\SocketLeague\\SocketLeague.csproj",
+      "projectPath": "C:\\Users\\melvi\\Documents\\GitHub\\IndaPlus\\melvinbe-sockets\\SocketLeague\\SocketLeague.csproj",
       "packagesPath": "C:\\Users\\melvi\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\melvi\\Documents\\GitHub\\IndaPlus\\SocketLeague\\obj\\",
+      "outputPath": "C:\\Users\\melvi\\Documents\\GitHub\\IndaPlus\\melvinbe-sockets\\SocketLeague\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\melvi\\AppData\\Roaming\\NuGet\\NuGet.Config",

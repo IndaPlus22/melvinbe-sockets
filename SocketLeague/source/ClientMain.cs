@@ -12,31 +12,25 @@ using System.Threading;
 
 namespace SocketLeague
 {
+    public enum MsgType
+    {
+        // Server messages:
+        ResetGame = 0,
+        AssignID = 1,
+
+        SetOtherPlayers = 2,
+        SetBall = 3,
+
+        // Client messages:
+        SetPlayer = 11,
+    }
+
     public class ClientMain : Game
     {
         private static byte[] recievedBuffer = new byte[1024];
         private static Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         private static Socket serverSocket;
         private static int clientID = 0;
-
-        private static void LoopConnect()
-        {
-            int attempts = 0;
-            while (!clientSocket.Connected)
-            {
-                try
-                {
-                    attempts++;
-                    clientSocket.BeginConnect(IPAddress.Loopback, 100, ConnectCallback, clientSocket);
-                }
-                catch (SocketException)
-                {
-                    Debug.WriteLine("Connection attempts: " + attempts.ToString());
-                }
-            }
-
-            Debug.WriteLine("Connected");
-        }
 
         private static void ConnectCallback(IAsyncResult ar)
         {
@@ -60,10 +54,10 @@ namespace SocketLeague
                 player.position = position;
             }
         }
-        private static void RecieveCallback(IAsyncResult AR)
+        private static void RecieveCallback(IAsyncResult ar)
         {
-            Socket socket = (Socket)AR.AsyncState;
-            int recievedSize = socket.EndReceive(AR);
+            Socket socket = (Socket)ar.AsyncState;
+            int recievedSize = socket.EndReceive(ar);
             byte[] data = new byte[recievedSize];
             Array.Copy(recievedBuffer, data, recievedSize);
 
@@ -87,12 +81,13 @@ namespace SocketLeague
             clientSocket.BeginSend(buffer.ToArray(), 0, buffer.Count, SocketFlags.None, new AsyncCallback(SendCallback), clientSocket);
         }
 
-        private static void SendCallback(IAsyncResult AR)
+        private static void SendCallback(IAsyncResult ar)
         {
-            Socket socket = (Socket)AR.AsyncState;
-            socket.EndSend(AR);
+            Socket socket = (Socket)ar.AsyncState;
+            socket.EndSend(ar);
         }
 
+        public static World localGame;
 
         private static Player player;
 
@@ -108,13 +103,13 @@ namespace SocketLeague
 
         protected override void Initialize()
         {
-            //LoopConnect();
             clientSocket.BeginConnect(IPAddress.Loopback, 100, ConnectCallback, clientSocket);
 
+            localGame = new World();
 
-            player = new Player(new Vector2(100.0f, 100.0f));
+            player = new Player(-1, Content.Load<Texture2D>("textures/circle"), new Vector2(100.0f, 100.0f));
 
-            World.bodies.Add(player);
+            localGame.Add(player);
 
             base.Initialize();
         }
@@ -122,8 +117,6 @@ namespace SocketLeague
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-
-            Player.texture = Content.Load<Texture2D>("textures/circle");
         }
 
         protected override void Update(GameTime gameTime)
@@ -134,7 +127,7 @@ namespace SocketLeague
 
             if (Input.Exit()) Exit();
 
-            World.Update(deltaTime);
+            localGame.Update(deltaTime);
 
             List<byte> buffer = new List<byte>();
             buffer.AddRange(BitConverter.GetBytes(0));
@@ -150,7 +143,7 @@ namespace SocketLeague
 
             spriteBatch.Begin();
 
-            World.Draw(spriteBatch);
+            localGame.Draw(spriteBatch);
 
             spriteBatch.End();
 

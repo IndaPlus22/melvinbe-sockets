@@ -15,8 +15,12 @@ namespace Server
     class ServerMain
     {
         private static byte[] recievedBuffer = new byte[1024];
-        private static List<Socket> clientSockets = new List<Socket>();
+        private static Dictionary<int, Socket> clientSockets = new Dictionary<int, Socket>();
         private static Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+        public static List<World> games = new List<World>();
+
+        private static int nextID = 0;
 
         static void Main(string[] args)
         {
@@ -24,13 +28,18 @@ namespace Server
             SetupServer();
             while (true)
             {
+                foreach (World game in games)
+                {
+                    game.Update(1.0f / 60.0f);
+                }
+
                 if (Console.ReadKey(true).Key == ConsoleKey.M)
                 {
                     List<byte> buffer = new List<byte>();
                     buffer.AddRange(BitConverter.GetBytes(300.0f));
                     buffer.AddRange(BitConverter.GetBytes(300.0f));
 
-                    SendMessageToAll(0, buffer.ToArray());
+                    SendMessageToAllOther(0, 0, buffer.ToArray());
                 }
             }
         }
@@ -44,13 +53,31 @@ namespace Server
             serverSocket.BeginAccept(new AsyncCallback(AcceptCallback), null);
         }
 
-        private static void AcceptCallback(IAsyncResult AR)
+        private static void AcceptCallback(IAsyncResult ar)
         {
-            Socket socket = serverSocket.EndAccept(AR);
-            clientSockets.Add(socket);
-            Console.WriteLine("Client Connected");
+            Socket socket = serverSocket.EndAccept(ar);
+            clientSockets.Add(nextID, socket);
+
+            NewGame:
+            foreach (World game in games)
+            {
+                if (game.players.Count < 4)
+                {
+                    Player player = new Player(nextID, null, new Vector2(100.0f * nextID, 100.0f));
+                    game.Add(player);
+
+                    goto PlayerAdded;
+                }
+            }
+            games.Add(new World());
+            goto NewGame;
+            PlayerAdded:
+
             socket.BeginReceive(recievedBuffer, 0, recievedBuffer.Length, SocketFlags.None, new AsyncCallback(RecieveCallback), socket);
             serverSocket.BeginAccept(new AsyncCallback(AcceptCallback), null);
+
+            SendMessage(nextID, (int)MsgType.AssignID, BitConverter.GetBytes(nextID));
+            nextID++;
         }
 
         private static void RecieveMessage(int clientID, int msgType, byte[] data)
@@ -67,10 +94,10 @@ namespace Server
             }
         }
 
-        private static void RecieveCallback(IAsyncResult AR)
+        private static void RecieveCallback(IAsyncResult ar)
         {
-            Socket socket = (Socket)AR.AsyncState;
-            int recieved = socket.EndReceive(AR);
+            Socket socket = (Socket)ar.AsyncState;
+            int recieved = socket.EndReceive(ar);
             byte[] dataBuffer = new byte[recieved];
             Array.Copy(recievedBuffer, dataBuffer, recieved);
 
@@ -86,22 +113,34 @@ namespace Server
             socket.BeginReceive(recievedBuffer, 0, recievedBuffer.Length, SocketFlags.None, new AsyncCallback(RecieveCallback), socket);
         }
 
-        private static void SendMessageToAll(int msgType, byte[] data)
+        private static void SendMessage(int clientID, int msgType, byte[] data)
         {
             List<byte> buffer = new List<byte>();
             buffer.AddRange(BitConverter.GetBytes(msgType));
             buffer.AddRange(data);
 
-            foreach (Socket socket in clientSockets)
+            Socket socket = clientSockets[clientID];
+
+            socket.BeginSend(buffer.ToArray(), 0, buffer.Count, SocketFlags.None, new AsyncCallback(SendCallback), socket);
+        }
+
+        private static void SendMessageToAllOther(int excludeID, int msgType, byte[] data)
+        {
+            List<byte> buffer = new List<byte>();
+            buffer.AddRange(BitConverter.GetBytes(msgType));
+            buffer.AddRange(data);
+
+            foreach (var socket in clientSockets)
             {
-                socket.BeginSend(buffer.ToArray(), 0, buffer.Count, SocketFlags.None, new AsyncCallback(SendCallback), socket);
+                if (socket.Key == excludeID) continue;
+                socket.Value.BeginSend(buffer.ToArray(), 0, buffer.Count, SocketFlags.None, new AsyncCallback(SendCallback), socket.Value);
             }
         }
 
-        private static void SendCallback(IAsyncResult AR)
+        private static void SendCallback(IAsyncResult ar)
         {
-            Socket socket = (Socket)AR.AsyncState;
-            socket.EndSend(AR);
+            Socket socket = (Socket)ar.AsyncState;
+            socket.EndSend(ar);
         }
     }
 }
