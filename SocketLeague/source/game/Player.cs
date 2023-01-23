@@ -11,16 +11,19 @@ namespace SocketLeague
     {
         public int ID;
 
-        public Player(int ID, Texture2D texture, Vector2 position)
-            : base(texture, position)
+        public Player()
+            : base(ClientMain.playerTexture)
         {
-            this.ID = ID;
+
         }
 
         public override void Update(float deltaTime)
         {
-            position.X += Input.Horizontal() * 50.0f * deltaTime;
-            position.Y += Input.vertical() * 50.0f * deltaTime;
+            if (ID == ClientMain.localID)
+            {
+                position.X += Input.Horizontal() * 50.0f * deltaTime;
+                position.Y += Input.vertical() * 50.0f * deltaTime;
+            }
 
             base.Update(deltaTime);
         }   
@@ -28,10 +31,18 @@ namespace SocketLeague
         public List<byte> GetData()
         {
             List<byte> data = new List<byte>();
+            data.AddRange(BitConverter.GetBytes(isActive));
             data.AddRange(BitConverter.GetBytes(position.X));
             data.AddRange(BitConverter.GetBytes(position.Y));
 
             return data;
+        }
+
+        public void SetData(byte[] data)
+        {
+            isActive = BitConverter.ToBoolean(data, 0);
+            position.X = BitConverter.ToSingle(data, 1);
+            position.Y = BitConverter.ToSingle(data, 5);
         }
     }
 }

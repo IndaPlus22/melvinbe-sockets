@@ -14,10 +14,10 @@ namespace SocketLeague
 
         public bool isStatic;
 
-        public Body(Texture2D texture, Vector2 position)
+        public Body(Texture2D texture)
             : base(texture)
         {
-            this.position = position;
+
         }
 
         public override void Update(float deltaTime)

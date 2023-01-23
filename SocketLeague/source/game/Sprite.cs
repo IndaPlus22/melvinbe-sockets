@@ -13,6 +13,8 @@ namespace SocketLeague
 
         public int sortingLayer;
 
+        public bool isActive = true;
+
         public Sprite(Texture2D texture)
         {
             this.texture = texture;
@@ -20,26 +22,23 @@ namespace SocketLeague
 
         public virtual void Update(float deltaTime)
         {
-
+            
         }
 
         public virtual void Draw(SpriteBatch spriteBatch)
         {
-            if (texture != null)
-            {
-                spriteBatch.Draw
-                (
-                    texture,
-                    position,
-                    texture.Bounds,
-                    Color.White,
-                    rotation,
-                    new Vector2(texture.Width / 2, texture.Height / 2),
-                    scale,
-                    SpriteEffects.None,
-                    0.5f - 1.0f / sortingLayer
-                );
-            }
+            spriteBatch.Draw
+            (
+                texture,
+                position,
+                texture.Bounds,
+                Color.White,
+                rotation,
+                new Vector2(texture.Width / 2, texture.Height / 2),
+                scale,
+                SpriteEffects.None,
+                0.5f - 1.0f / sortingLayer
+            );
         }
     }
 }

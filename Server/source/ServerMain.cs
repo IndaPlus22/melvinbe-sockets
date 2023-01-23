@@ -16,15 +16,20 @@ namespace Server
     {
         private static byte[] recievedBuffer = new byte[1024];
         private static Dictionary<int, Socket> clientSockets = new Dictionary<int, Socket>();
-        private static Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        private static Socket serverSocket = new Socket(
+            AddressFamily.InterNetwork,
+            SocketType.Stream,
+            ProtocolType.Tcp);
 
         public static List<World> games = new List<World>();
-
-        private static int nextID = 0;
 
         static void Main(string[] args)
         {
             Console.Title = "Server";
+            games.Add(new World());
+            games.Add(new World());
+            games.Add(new World());
+
             SetupServer();
             while (true)
             {
@@ -56,33 +61,35 @@ namespace Server
         private static void AcceptCallback(IAsyncResult ar)
         {
             Socket socket = serverSocket.EndAccept(ar);
-            clientSockets.Add(nextID, socket);
 
-            NewGame:
+            int newID = 0;
             foreach (World game in games)
             {
-                if (game.players.Count < 4)
+                foreach (Player player in game.players)
                 {
-                    Player player = new Player(nextID, null, new Vector2(100.0f * nextID, 100.0f));
-                    game.Add(player);
-
-                    goto PlayerAdded;
+                    if (!player.isActive)
+                    {
+                        player.isActive = true;
+                        player.ID = newID;
+                        goto PlayerAdded;
+                    }
+                    newID++;
                 }
             }
-            games.Add(new World());
-            goto NewGame;
+
             PlayerAdded:
+
+            clientSockets.Add(newID, socket);
 
             socket.BeginReceive(recievedBuffer, 0, recievedBuffer.Length, SocketFlags.None, new AsyncCallback(RecieveCallback), socket);
             serverSocket.BeginAccept(new AsyncCallback(AcceptCallback), null);
 
-            SendMessage(nextID, (int)MsgType.AssignID, BitConverter.GetBytes(nextID));
-            nextID++;
+            SendMessage(newID, MsgTypes.AssignID, BitConverter.GetBytes(newID));
         }
 
-        private static void RecieveMessage(int clientID, int msgType, byte[] data)
+        private static void RecieveMessage(int clientID, MsgTypes msgType, byte[] data)
         {
-            if (msgType == 0)
+            if (msgType == MsgTypes.SetPlayer)
             {
                 Vector2 position = new Vector2
                 (
@@ -108,15 +115,15 @@ namespace Server
             msgType = BitConverter.ToInt32(dataBuffer, 4);
             dataBuffer = dataBuffer.Skip(8).ToArray();
 
-            RecieveMessage(clientID, msgType, dataBuffer);
+            RecieveMessage(clientID, (MsgTypes)msgType, dataBuffer);
 
             socket.BeginReceive(recievedBuffer, 0, recievedBuffer.Length, SocketFlags.None, new AsyncCallback(RecieveCallback), socket);
         }
 
-        private static void SendMessage(int clientID, int msgType, byte[] data)
+        private static void SendMessage(int clientID, MsgTypes msgType, byte[] data)
         {
             List<byte> buffer = new List<byte>();
-            buffer.AddRange(BitConverter.GetBytes(msgType));
+            buffer.AddRange(BitConverter.GetBytes((int)msgType));
             buffer.AddRange(data);
 
             Socket socket = clientSockets[clientID];
@@ -124,10 +131,10 @@ namespace Server
             socket.BeginSend(buffer.ToArray(), 0, buffer.Count, SocketFlags.None, new AsyncCallback(SendCallback), socket);
         }
 
-        private static void SendMessageToAllOther(int excludeID, int msgType, byte[] data)
+        private static void SendMessageToAllOther(int excludeID, MsgTypes msgType, byte[] data)
         {
             List<byte> buffer = new List<byte>();
-            buffer.AddRange(BitConverter.GetBytes(msgType));
+            buffer.AddRange(BitConverter.GetBytes((int)msgType));
             buffer.AddRange(data);
 
             foreach (var socket in clientSockets)

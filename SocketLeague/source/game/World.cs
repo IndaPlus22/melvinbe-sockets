@@ -14,9 +14,20 @@ namespace SocketLeague
 
         public List<Player> players = new List<Player>();
 
+        public World() 
+        {
+            Add(new Player());
+            Add(new Player());
+            Add(new Player());
+            Add(new Player());
+        }
+
         public void Reset()
         {
-
+            players[0].position = new Vector2(100.0f, 100.0f);
+            players[1].position = new Vector2(100.0f, 300.0f);
+            players[2].position = new Vector2(300.0f, 100.0f);
+            players[3].position = new Vector2(300.0f, 300.0f);
         }
 
         public void Add(Sprite sprite)
@@ -28,17 +39,23 @@ namespace SocketLeague
 
         public void Update(float deltaTime)
         {
-            foreach (Body body in bodies)
+            foreach (Sprite sprite in sprites)
             {
-                body.Update(deltaTime);
+                if (sprite.isActive)
+                {
+                    sprite.Update(deltaTime);
+                }
             }
         }
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            foreach (Body body in bodies)
+            foreach (Sprite sprite in sprites)
             {
-                body.Draw(spriteBatch);
+                if (sprite.texture != null && sprite.isActive)
+                {
+                    sprite.Draw(spriteBatch);
+                }
             }
         }
     }
