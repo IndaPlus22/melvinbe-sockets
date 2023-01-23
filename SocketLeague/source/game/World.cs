@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace SocketLeague
 {
@@ -12,14 +13,17 @@ namespace SocketLeague
 
         public List<Body> bodies = new List<Body>();
 
-        public List<Player> players = new List<Player>();
+        public Player[] players = new Player[4];
 
         public World() 
         {
-            Add(new Player());
-            Add(new Player());
-            Add(new Player());
-            Add(new Player());
+            for (int i = 0; i < 4; i++)
+            {
+                players[i] = new Player();
+                Add(players[i]);
+            }
+
+            Reset();
         }
 
         public void Reset()
@@ -33,8 +37,8 @@ namespace SocketLeague
         public void Add(Sprite sprite)
         {
             sprites.Add(sprite);
+
             if (sprite is Body) bodies.Add(sprite as Body);
-            if (sprite is Player) players.Add(sprite as Player);
         }
 
         public void Update(float deltaTime)

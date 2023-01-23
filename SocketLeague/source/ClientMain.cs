@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -13,34 +14,23 @@ using System.Threading;
 
 namespace SocketLeague
 {
-    public enum MsgTypes
-    {
-        // Server messages:
-        ResetGame = 0,
-        AssignID = 1,
-
-        SetBall = 2,
-
-        // Client messages:
-        SetPlayer = 11,
-    }
-
     public class ClientMain : Game
     {
-        private static Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        private static byte[] recievedBuffer = new byte[4096];
+
+        private static Socket clientSocket = new Socket(
+            AddressFamily.InterNetwork, 
+            SocketType.Stream, 
+            ProtocolType.Tcp);
         private static Socket serverSocket;
 
-        private static byte[] recievedBuffer = new byte[1024];
 
         public static int localID = -1;
-
-        
 
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
 
         public static World localGame;
-        public static Player player;
 
         public static Texture2D playerTexture = null;
 
@@ -53,34 +43,38 @@ namespace SocketLeague
 
         protected override void Initialize()
         {
-            clientSocket.BeginConnect(IPAddress.Loopback, 100, ConnectCallback, clientSocket);
-
-            localGame = new World();
-
             base.Initialize();
         }
 
         protected override void LoadContent()
         {
-            playerTexture = Content.Load<Texture2D>("textures/circle");
-
             spriteBatch = new SpriteBatch(GraphicsDevice);
+
+            Player.playerTexture = Content.Load<Texture2D>("textures/circle");
+
+            localGame = new World();
+
+            clientSocket.BeginConnect(IPAddress.Loopback, 100, ConnectCallback, clientSocket);
         }
 
         public static void RecieveMessage(MsgTypes msgType, byte[] data)
         {
+            Debug.WriteLine(msgType);
+
             if (msgType == MsgTypes.AssignID)
             {
                 int newID = BitConverter.ToInt32(data, 0);
                 localID = newID;
 
+                Debug.WriteLine("Assigning new ID: " + newID);
             }
             if (msgType == MsgTypes.SetPlayer)
             {
-                float x = BitConverter.ToSingle(data, 0);
-                float y = BitConverter.ToSingle(data, 4);
+                int playerToUpdate = BitConverter.ToInt32(data, 0);
+                data = data.Skip(4).ToArray();
 
-                player.position = new Vector2(x, y);
+                Debug.WriteLine("Updating player: " + playerToUpdate);
+                localGame.players[playerToUpdate].SetData(data);
             }
         }
 
@@ -96,15 +90,23 @@ namespace SocketLeague
         {
             Socket socket = (Socket)ar.AsyncState;
             int recievedSize = socket.EndReceive(ar);
+            Debug.WriteLine(recievedSize);
             byte[] data = new byte[recievedSize];
             Array.Copy(recievedBuffer, data, recievedSize);
 
-            int msgType;
+            while (recievedSize > 0)
+            {
+                int dataSize = BitConverter.ToInt32(data, 0);
+                MsgTypes msgType = (MsgTypes)BitConverter.ToInt32(data, 4);
+                data = data.Skip(8).ToArray();
 
-            msgType = BitConverter.ToInt32(data, 0);
-            data = data.Skip(4).ToArray();
+                byte[] msgData = data.Take(dataSize).ToArray();
+                data = data.Skip(dataSize).ToArray();
 
-            RecieveMessage((MsgTypes)msgType, data);
+                recievedSize -= 8 + dataSize;
+
+                RecieveMessage(msgType, msgData);
+            }
 
             socket.BeginReceive(recievedBuffer, 0, recievedBuffer.Length, SocketFlags.None, new AsyncCallback(RecieveCallback), socket);
         }
@@ -134,14 +136,6 @@ namespace SocketLeague
             if (Input.Exit()) Exit();
 
             localGame.Update(deltaTime);
-
-            if (player != null)
-            {
-                List<byte> buffer = new List<byte>();
-                buffer.AddRange(BitConverter.GetBytes(0));
-                buffer.AddRange(BitConverter.GetBytes(0));
-                SendMessage(0, player.GetData().ToArray());
-            }
 
             base.Update(gameTime);
         }

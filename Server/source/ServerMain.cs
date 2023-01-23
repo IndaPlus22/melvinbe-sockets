@@ -8,36 +8,32 @@ using System.Threading.Tasks;
 using SocketLeague;
 using Microsoft.Xna.Framework;
 using System.Diagnostics;
-using Microsoft.Xna.Framework.Input;
 
 namespace Server
 {
     class ServerMain
     {
-        private static byte[] recievedBuffer = new byte[1024];
+        private static byte[] recievedBuffer = new byte[4096];
         private static Dictionary<int, Socket> clientSockets = new Dictionary<int, Socket>();
         private static Socket serverSocket = new Socket(
             AddressFamily.InterNetwork,
             SocketType.Stream,
             ProtocolType.Tcp);
 
-        public static List<World> games = new List<World>();
+        public static World game;
 
         static void Main(string[] args)
         {
             Console.Title = "Server";
-            games.Add(new World());
-            games.Add(new World());
-            games.Add(new World());
+            game = new World();
 
             SetupServer();
+
             while (true)
             {
-                foreach (World game in games)
-                {
-                    game.Update(1.0f / 60.0f);
-                }
+                game.Update(1.0f / 60.0f);
 
+                /*
                 if (Console.ReadKey(true).Key == ConsoleKey.M)
                 {
                     List<byte> buffer = new List<byte>();
@@ -46,6 +42,7 @@ namespace Server
 
                     SendMessageToAllOther(0, 0, buffer.ToArray());
                 }
+                */
             }
         }
 
@@ -62,29 +59,36 @@ namespace Server
         {
             Socket socket = serverSocket.EndAccept(ar);
 
-            int newID = 0;
-            foreach (World game in games)
+            Console.WriteLine("Client accepted");
+
+            int newID = -1;
+
+            for (int i = 0; i < 4; i++)
             {
-                foreach (Player player in game.players)
+                if (!game.players[i].isActive)
                 {
-                    if (!player.isActive)
-                    {
-                        player.isActive = true;
-                        player.ID = newID;
-                        goto PlayerAdded;
-                    }
-                    newID++;
+                    newID = i;
+                    game.players[i].isActive = true;
+                    game.players[i].ID = newID;
+
+                    break;
                 }
             }
 
-            PlayerAdded:
-
             clientSockets.Add(newID, socket);
+
+            SendMessage(newID, MsgTypes.AssignID, BitConverter.GetBytes(newID));
+
+            for (int i = 0; i < 4; i++)
+            {
+                List<byte> data = new List<byte>();
+                data.AddRange(BitConverter.GetBytes(i));
+                data.AddRange(game.players[i].GetData());
+                SendMessage(newID, MsgTypes.SetPlayer, data.ToArray());
+            }
 
             socket.BeginReceive(recievedBuffer, 0, recievedBuffer.Length, SocketFlags.None, new AsyncCallback(RecieveCallback), socket);
             serverSocket.BeginAccept(new AsyncCallback(AcceptCallback), null);
-
-            SendMessage(newID, MsgTypes.AssignID, BitConverter.GetBytes(newID));
         }
 
         private static void RecieveMessage(int clientID, MsgTypes msgType, byte[] data)
@@ -122,11 +126,12 @@ namespace Server
 
         private static void SendMessage(int clientID, MsgTypes msgType, byte[] data)
         {
+            Socket socket = clientSockets[clientID];
+
             List<byte> buffer = new List<byte>();
+            buffer.AddRange(BitConverter.GetBytes(data.Length));
             buffer.AddRange(BitConverter.GetBytes((int)msgType));
             buffer.AddRange(data);
-
-            Socket socket = clientSockets[clientID];
 
             socket.BeginSend(buffer.ToArray(), 0, buffer.Count, SocketFlags.None, new AsyncCallback(SendCallback), socket);
         }

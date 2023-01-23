@@ -9,7 +9,7 @@ namespace SocketLeague
 
         public Vector2 position;
         public float rotation;
-        public Vector2 scale;
+        public Vector2 scale = Vector2.One;
 
         public int sortingLayer;
 
@@ -37,7 +37,7 @@ namespace SocketLeague
                 new Vector2(texture.Width / 2, texture.Height / 2),
                 scale,
                 SpriteEffects.None,
-                0.5f - 1.0f / sortingLayer
+                0.5f + sortingLayer / 10000f
             );
         }
     }
