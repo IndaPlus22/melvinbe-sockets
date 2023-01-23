@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using SocketLeague;
 using Microsoft.Xna.Framework;
 using System.Diagnostics;
+using System.Numerics;
 
 namespace Server
 {
@@ -20,29 +21,51 @@ namespace Server
             SocketType.Stream,
             ProtocolType.Tcp);
 
-        public static World game;
+        public static World localGame;
 
         static void Main(string[] args)
         {
             Console.Title = "Server";
-            game = new World();
+            localGame = new World();
 
             SetupServer();
 
+            Stopwatch sw = new Stopwatch();
+
+            float deltaTime = 0.0f;
+
+            float time = 0.0f;
+
             while (true)
             {
-                game.Update(1.0f / 60.0f);
+                time += deltaTime;
 
-                /*
-                if (Console.ReadKey(true).Key == ConsoleKey.M)
+                if (time > 2.0f)
                 {
-                    List<byte> buffer = new List<byte>();
-                    buffer.AddRange(BitConverter.GetBytes(300.0f));
-                    buffer.AddRange(BitConverter.GetBytes(300.0f));
-
-                    SendMessageToAllOther(0, 0, buffer.ToArray());
+                    time -= 2.0f;
+                    foreach (Player player in localGame.players)
+                    {
+                        if (player.isActive)
+                        {
+                            Console.WriteLine("Player " + player.ID);
+                            Console.WriteLine("X: " + player.position.X + " Y: " + player.position.Y);
+                        }
+                    }
+                    Console.WriteLine("Ball");
+                    Console.WriteLine("X: " + localGame.ball.position.X + " Y: " + localGame.ball.position.Y);
                 }
-                */
+
+                localGame.Update(deltaTime);
+
+                foreach (var socket in clientSockets)
+                {
+                    SendMessage(socket.Key, MsgTypes.SetBall, localGame.ball.GetData());
+                }
+
+                Thread.Sleep(10);
+
+                deltaTime = (float)sw.Elapsed.TotalSeconds;
+                sw.Restart();
             }
         }
 
@@ -65,11 +88,11 @@ namespace Server
 
             for (int i = 0; i < 4; i++)
             {
-                if (!game.players[i].isActive)
+                if (!localGame.players[i].isActive)
                 {
                     newID = i;
-                    game.players[i].isActive = true;
-                    game.players[i].ID = newID;
+                    localGame.players[i].isActive = true;
+                    localGame.players[i].ID = newID;
 
                     break;
                 }
@@ -83,7 +106,7 @@ namespace Server
             {
                 List<byte> data = new List<byte>();
                 data.AddRange(BitConverter.GetBytes(i));
-                data.AddRange(game.players[i].GetData());
+                data.AddRange(localGame.players[i].GetData());
                 SendMessage(newID, MsgTypes.SetPlayer, data.ToArray());
             }
 
@@ -93,33 +116,52 @@ namespace Server
 
         private static void RecieveMessage(int clientID, MsgTypes msgType, byte[] data)
         {
-            if (msgType == MsgTypes.SetPlayer)
+            switch (msgType)
             {
-                Vector2 position = new Vector2
-                (
-                BitConverter.ToSingle(data, 0),
-                BitConverter.ToSingle(data, 4)
-                );
+                case MsgTypes.SetPlayer:
+                {
+                    Debug.WriteLine("Updating player: " + clientID);
 
-                Console.WriteLine("Text recieved: " + position);
+                    localGame.players[clientID].SetData(data);
+
+                    List<byte> buffer = new List<byte>();
+                    buffer.AddRange(BitConverter.GetBytes(clientID));
+                    buffer.AddRange(data);
+
+                    foreach (var socket in clientSockets)
+                    {
+                        if (socket.Key != clientID)
+                        {
+                            SendMessage(socket.Key, MsgTypes.SetPlayer, buffer.ToArray());
+                        }
+                    }
+
+                    break;
+                }
             }
         }
 
         private static void RecieveCallback(IAsyncResult ar)
         {
             Socket socket = (Socket)ar.AsyncState;
-            int recieved = socket.EndReceive(ar);
-            byte[] dataBuffer = new byte[recieved];
-            Array.Copy(recievedBuffer, dataBuffer, recieved);
+            int recievedSize = socket.EndReceive(ar);
+            byte[] data = new byte[recievedSize];
+            Array.Copy(recievedBuffer, data, recievedSize);
 
-            int clientID;
-            int msgType;
+            while (recievedSize > 0)
+            {
+                int clientID = BitConverter.ToInt32(data, 0);
+                int dataSize = BitConverter.ToInt32(data, 4);
+                MsgTypes msgType = (MsgTypes)BitConverter.ToInt32(data, 8);
+                data = data.Skip(12).ToArray();
 
-            clientID = BitConverter.ToInt32(dataBuffer, 0);
-            msgType = BitConverter.ToInt32(dataBuffer, 4);
-            dataBuffer = dataBuffer.Skip(8).ToArray();
+                byte[] msgData = data.Take(dataSize).ToArray();
+                data = data.Skip(dataSize).ToArray();
 
-            RecieveMessage(clientID, (MsgTypes)msgType, dataBuffer);
+                recievedSize -= 12 + dataSize;
+
+                RecieveMessage(clientID, msgType, msgData);
+            }
 
             socket.BeginReceive(recievedBuffer, 0, recievedBuffer.Length, SocketFlags.None, new AsyncCallback(RecieveCallback), socket);
         }
@@ -133,20 +175,12 @@ namespace Server
             buffer.AddRange(BitConverter.GetBytes((int)msgType));
             buffer.AddRange(data);
 
-            socket.BeginSend(buffer.ToArray(), 0, buffer.Count, SocketFlags.None, new AsyncCallback(SendCallback), socket);
-        }
-
-        private static void SendMessageToAllOther(int excludeID, MsgTypes msgType, byte[] data)
-        {
-            List<byte> buffer = new List<byte>();
-            buffer.AddRange(BitConverter.GetBytes((int)msgType));
-            buffer.AddRange(data);
-
-            foreach (var socket in clientSockets)
+            if (msgType == MsgTypes.SetBall)
             {
-                if (socket.Key == excludeID) continue;
-                socket.Value.BeginSend(buffer.ToArray(), 0, buffer.Count, SocketFlags.None, new AsyncCallback(SendCallback), socket.Value);
+                Debug.WriteLine("Hre");
             }
+
+            socket.BeginSend(buffer.ToArray(), 0, buffer.Count, SocketFlags.None, new AsyncCallback(SendCallback), socket);
         }
 
         private static void SendCallback(IAsyncResult ar)

@@ -60,3 +60,5 @@ C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\Server\obj\Debug\net6.
 C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\Server\obj\Debug\net6.0\Server.pdb
 C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\Server\obj\Debug\net6.0\Server.genruntimeconfig.cache
 C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\Server\obj\Debug\net6.0\ref\Server.dll
+C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\Server\bin\Debug\net6.0\content\textures\direction_circle.xnb
+C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\Server\bin\Debug\net6.0\content\textures\square.xnb

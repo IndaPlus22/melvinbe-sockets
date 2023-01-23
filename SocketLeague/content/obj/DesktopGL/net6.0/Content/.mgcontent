@@ -5,8 +5,12 @@
   <Config />
   <SourceFiles>
     <File>C:/Users/melvi/Documents/GitHub/IndaPlus/melvinbe-sockets/SocketLeague/content/textures/circle.png</File>
+    <File>C:/Users/melvi/Documents/GitHub/IndaPlus/melvinbe-sockets/SocketLeague/content/textures/direction_circle.png</File>
+    <File>C:/Users/melvi/Documents/GitHub/IndaPlus/melvinbe-sockets/SocketLeague/content/textures/square.png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
   </DestFiles>
 </SourceFileCollection>

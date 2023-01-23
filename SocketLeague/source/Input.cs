@@ -36,20 +36,29 @@ namespace SocketLeague
 
         public static float Horizontal()
         {
-            float horizontal = LeftStick().X;
+            float horizontal = 0.0f;
             if (KeyHeld(Keys.Left))
                 horizontal -= 1.0f;
             if (KeyHeld(Keys.Right))
                 horizontal += 1.0f;
+            if (KeyHeld(Keys.A))
+                horizontal -= 1.0f;
+            if (KeyHeld(Keys.D))
+                horizontal += 1.0f;
+
             return Math.Clamp(horizontal, -1.0f, 1.0f);
         }
-        public static float vertical()
+        public static float Vertical()
         {
-            float vertical = LeftStick().Y;
+            float vertical = 0.0f;
             if (KeyHeld(Keys.Up))
-                vertical -= 1.0f;
-            if (KeyHeld(Keys.Down))
                 vertical += 1.0f;
+            if (KeyHeld(Keys.Down))
+                vertical -= 1.0f;
+            if (KeyHeld(Keys.W))
+                vertical += 1.0f;
+            if (KeyHeld(Keys.D))
+                vertical -= 1.0f;
             return Math.Clamp(vertical, -1.0f, 1.0f);
         }
 

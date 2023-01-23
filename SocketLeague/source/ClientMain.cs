@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -30,6 +31,8 @@ namespace SocketLeague
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
 
+        private RenderTarget2D nativeRenderTarget;
+
         public static World localGame;
 
         public static Texture2D playerTexture = null;
@@ -38,11 +41,16 @@ namespace SocketLeague
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "content";
+
             IsMouseVisible = true;
+            Window.AllowUserResizing = true;
         }
 
         protected override void Initialize()
         {
+            nativeRenderTarget = new RenderTarget2D(GraphicsDevice, GameWindow.REFERENCE_WIDTH, GameWindow.REFERENCE_HEIGHT);
+            GameWindow.Initialize(graphics, Window);
+
             base.Initialize();
         }
 
@@ -50,7 +58,11 @@ namespace SocketLeague
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            Player.playerTexture = Content.Load<Texture2D>("textures/circle");
+            Player.playerTexture = Content.Load<Texture2D>("textures/direction_circle");
+            Ball.ballTexture = Content.Load<Texture2D>("textures/circle");
+
+            Stage.circleTexture = Content.Load<Texture2D>("textures/circle");
+            Stage.squareTexture = Content.Load<Texture2D>("textures/square");
 
             localGame = new World();
 
@@ -59,22 +71,34 @@ namespace SocketLeague
 
         public static void RecieveMessage(MsgTypes msgType, byte[] data)
         {
-            Debug.WriteLine(msgType);
-
-            if (msgType == MsgTypes.AssignID)
+            switch (msgType)
             {
-                int newID = BitConverter.ToInt32(data, 0);
-                localID = newID;
+                case MsgTypes.AssignID:
+                {
+                    int newID = BitConverter.ToInt32(data, 0);
+                    localID = newID;
 
-                Debug.WriteLine("Assigning new ID: " + newID);
-            }
-            if (msgType == MsgTypes.SetPlayer)
-            {
-                int playerToUpdate = BitConverter.ToInt32(data, 0);
-                data = data.Skip(4).ToArray();
+                    Debug.WriteLine("Assigning new ID: " + newID);
 
-                Debug.WriteLine("Updating player: " + playerToUpdate);
-                localGame.players[playerToUpdate].SetData(data);
+                    break;
+                }
+                case MsgTypes.SetPlayer:
+                {
+                    int playerToUpdate = BitConverter.ToInt32(data, 0);
+                    data = data.Skip(4).ToArray();
+
+                    Debug.WriteLine("Updating player: " + playerToUpdate);
+                    localGame.players[playerToUpdate].SetData(data);
+
+                    break;
+                }
+                case MsgTypes.SetBall:
+                {
+                    Debug.WriteLine("Updating ball");
+                    localGame.ball.SetData(data);
+
+                    break;
+                }
             }
         }
 
@@ -85,12 +109,10 @@ namespace SocketLeague
             serverSocket.BeginReceive(recievedBuffer, 0, recievedBuffer.Length, SocketFlags.None, new AsyncCallback(RecieveCallback), serverSocket);
         }
 
-
         private static void RecieveCallback(IAsyncResult ar)
         {
             Socket socket = (Socket)ar.AsyncState;
             int recievedSize = socket.EndReceive(ar);
-            Debug.WriteLine(recievedSize);
             byte[] data = new byte[recievedSize];
             Array.Copy(recievedBuffer, data, recievedSize);
 
@@ -105,17 +127,23 @@ namespace SocketLeague
 
                 recievedSize -= 8 + dataSize;
 
+                if(msgType == MsgTypes.SetBall)
+                {
+                    Debug.WriteLine("here");
+                }
+
                 RecieveMessage(msgType, msgData);
             }
 
             socket.BeginReceive(recievedBuffer, 0, recievedBuffer.Length, SocketFlags.None, new AsyncCallback(RecieveCallback), socket);
         }
 
-        public static void SendMessage(int msgType, byte[] data)
+        public static void SendMessage(MsgTypes msgType, byte[] data)
         {
             List<byte> buffer = new List<byte>();
             buffer.AddRange(BitConverter.GetBytes(localID));
-            buffer.AddRange(BitConverter.GetBytes(msgType));
+            buffer.AddRange(BitConverter.GetBytes(data.Length));
+            buffer.AddRange(BitConverter.GetBytes((int)msgType));
             buffer.AddRange(data);
 
             clientSocket.BeginSend(buffer.ToArray(), 0, buffer.Count, SocketFlags.None, new AsyncCallback(SendCallback), clientSocket);
@@ -142,11 +170,38 @@ namespace SocketLeague
 
         protected override void Draw(GameTime gameTime)
         {
+            GraphicsDevice.SetRenderTarget(nativeRenderTarget);
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            spriteBatch.Begin();
+            spriteBatch.Begin(samplerState: SamplerState.PointClamp, sortMode: SpriteSortMode.FrontToBack);
 
             localGame.Draw(spriteBatch);
+
+            Stage.Draw(spriteBatch);
+
+            spriteBatch.End();
+
+            GraphicsDevice.SetRenderTarget(null);
+            GraphicsDevice.Clear(Color.Black);
+
+            spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+
+            Rectangle screenRect = nativeRenderTarget.Bounds;
+            Vector2 screenCenter = Vector2.Floor(new Vector2(Window.ClientBounds.Width, Window.ClientBounds.Height) / 2);
+            Vector2 screenOrigin = Vector2.Floor(new Vector2(GameWindow.REFERENCE_WIDTH, GameWindow.REFERENCE_HEIGHT) / 2);
+
+            spriteBatch.Draw
+            (
+                nativeRenderTarget, 
+                screenCenter, 
+                screenRect, 
+                Color.White, 
+                0.0f, 
+                screenOrigin, 
+                GameWindow.pixelSize, 
+                SpriteEffects.None, 
+                0.0f
+            );
 
             spriteBatch.End();
 

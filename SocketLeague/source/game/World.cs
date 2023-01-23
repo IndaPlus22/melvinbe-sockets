@@ -15,13 +15,18 @@ namespace SocketLeague
 
         public Player[] players = new Player[4];
 
+        public Ball ball;
+
         public World() 
         {
             for (int i = 0; i < 4; i++)
             {
-                players[i] = new Player();
+                players[i] = new Player(i);
                 Add(players[i]);
             }
+
+            ball = new Ball();
+            Add(ball);
 
             Reset();
         }
@@ -29,9 +34,16 @@ namespace SocketLeague
         public void Reset()
         {
             players[0].position = new Vector2(100.0f, 100.0f);
-            players[1].position = new Vector2(100.0f, 300.0f);
-            players[2].position = new Vector2(300.0f, 100.0f);
-            players[3].position = new Vector2(300.0f, 300.0f);
+            players[1].position = new Vector2(100.0f, 100.0f);
+            players[2].position = new Vector2(100.0f, 100.0f);
+            players[3].position = new Vector2(100.0f, 100.0f);
+            for (int i = 0; i < 4; i++)
+            {
+                players[i].velocity = Vector2.Zero;
+            }
+
+            ball.position = new Vector2(200.0f, 150.0f);
+            ball.velocity = Vector2.Zero;
         }
 
         public void Add(Sprite sprite)
@@ -48,6 +60,37 @@ namespace SocketLeague
                 if (sprite.isActive)
                 {
                     sprite.Update(deltaTime);
+                }
+            }
+
+            for (int a = 0; a < bodies.Count; a++)
+            {
+                if (!bodies[a].isActive) continue;
+
+                for (int b = a; b < bodies.Count; b++)
+                {
+                    if (!bodies[b].isActive) continue;
+
+                    if (a != b)
+                    {
+                        Collision.BodyToBody(bodies[a], bodies[b]);
+                    }
+                }
+            }
+
+            foreach (Body body in bodies)
+            {
+                if (body.isActive)
+                {
+                    Collision.BodyToStage(body);
+                }
+            }
+
+            foreach (Body body in bodies)
+            {
+                if (body.isActive)
+                {
+                    body.Move();
                 }
             }
         }
