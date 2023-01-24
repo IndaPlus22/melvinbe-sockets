@@ -25,6 +25,9 @@ namespace SocketLeague
             ProtocolType.Tcp);
         private static Socket serverSocket;
 
+        private static bool connecting;
+
+        private static bool connectionLost;
 
         public static int localID = -1;
 
@@ -33,9 +36,10 @@ namespace SocketLeague
 
         private RenderTarget2D nativeRenderTarget;
 
-        public static World localGame;
+        public static float countDownTime;
+        private SpriteFont countdownFont;
 
-        public static Texture2D playerTexture = null;
+        public static World localGame;
 
         public ClientMain()
         {
@@ -58,27 +62,37 @@ namespace SocketLeague
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
+            countdownFont = Content.Load<SpriteFont>("fonts/countdown_font");
+
             Player.playerTexture = Content.Load<Texture2D>("textures/direction_circle");
             Ball.ballTexture = Content.Load<Texture2D>("textures/circle");
+            BoostPad.boostPadTexture = Content.Load<Texture2D>("textures/circle");
 
+            Stage.stageTexture = Content.Load<Texture2D>("textures/stage");
             Stage.circleTexture = Content.Load<Texture2D>("textures/circle");
             Stage.squareTexture = Content.Load<Texture2D>("textures/square");
 
             localGame = new World();
-
-            clientSocket.BeginConnect(IPAddress.Loopback, 100, ConnectCallback, clientSocket);
         }
 
         public static void RecieveMessage(MsgTypes msgType, byte[] data)
         {
             switch (msgType)
             {
+                case MsgTypes.ResetGame:
+                {
+                    localGame.Reset();
+
+                    break;
+                }
                 case MsgTypes.AssignID:
                 {
                     int newID = BitConverter.ToInt32(data, 0);
-                    localID = newID;
-
+                    
                     Debug.WriteLine("Assigning new ID: " + newID);
+
+                    localID = newID;
+                    Camera.followTarget = localGame.players[newID];
 
                     break;
                 }
@@ -104,15 +118,35 @@ namespace SocketLeague
 
         private static void ConnectCallback(IAsyncResult ar)
         {
-            serverSocket = (Socket)ar.AsyncState;
+            connecting = false;
+            try
+            {
+                serverSocket = (Socket)ar.AsyncState;
 
-            serverSocket.BeginReceive(recievedBuffer, 0, recievedBuffer.Length, SocketFlags.None, new AsyncCallback(RecieveCallback), serverSocket);
+                serverSocket.EndConnect(ar);
+
+                serverSocket.BeginReceive(recievedBuffer, 0, recievedBuffer.Length, SocketFlags.None, new AsyncCallback(RecieveCallback), serverSocket);
+            } 
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.ToString());
+            }
         }
 
         private static void RecieveCallback(IAsyncResult ar)
         {
             Socket socket = (Socket)ar.AsyncState;
-            int recievedSize = socket.EndReceive(ar);
+            int recievedSize = 0;
+            try
+            {
+                recievedSize = socket.EndReceive(ar);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("Connection Lost...");
+                Debug.WriteLine(e.ToString());
+                connectionLost = true;
+            }
             byte[] data = new byte[recievedSize];
             Array.Copy(recievedBuffer, data, recievedSize);
 
@@ -157,13 +191,28 @@ namespace SocketLeague
 
         protected override void Update(GameTime gameTime)
         {
+            if (!clientSocket.Connected)
+            {
+                if (!connecting)
+                {
+                    clientSocket.BeginConnect(IPAddress.Loopback, 100, ConnectCallback, clientSocket);
+                    connecting = true;
+                }
+            }
+
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             Input.Update();
 
-            if (Input.Exit()) Exit();
+            if (Input.Exit() || connectionLost) Exit();
+
+            if (Input.KeyDown(Keys.F)) GameWindow.ToggleFullscreen();
 
             localGame.Update(deltaTime);
+
+            countDownTime -= deltaTime;
+
+            Camera.Update(deltaTime);
 
             base.Update(gameTime);
         }
@@ -178,6 +227,23 @@ namespace SocketLeague
             localGame.Draw(spriteBatch);
 
             Stage.Draw(spriteBatch);
+
+            if (countDownTime > 0.0f)
+            {
+                int number = (int)countDownTime + 1;
+                spriteBatch.DrawString
+                (
+                    countdownFont,
+                    number.ToString(),
+                    new Vector2(GameWindow.REFERENCE_WIDTH / 2, GameWindow.REFERENCE_HEIGHT / 4) + new Vector2(-10, -10),
+                    Color.Gold,
+                    0.0f,
+                    Vector2.Zero,
+                    Vector2.One,
+                    SpriteEffects.None,
+                    1.0f
+                );
+            }
 
             spriteBatch.End();
 

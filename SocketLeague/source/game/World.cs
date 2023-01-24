@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -13,48 +14,83 @@ namespace SocketLeague
 
         public List<Body> bodies = new List<Body>();
 
+        public BoostPad[] boosts = new BoostPad[6];
+
         public Player[] players = new Player[4];
 
         public Ball ball;
+
+        public static Vector2[] startingPositions = new Vector2[4]
+        {
+            new Vector2(-184, -60),
+            new Vector2(184, 60),
+            new Vector2(-184, 60),
+            new Vector2(184, -60),
+        };
+        public static float[] startingRotations = new float[4]
+        {
+            0.0f,
+            (float)Math.PI,
+            0.0f,
+            (float)Math.PI,
+        };
+
+        public static Vector2[] boostPositions = new Vector2[6]
+        {
+            new Vector2(-188, -96),
+            new Vector2(188, 96),
+            new Vector2(-188, 96),
+            new Vector2(188, -96),
+            new Vector2(0, 120),
+            new Vector2(0, -120),
+        };
 
         public World() 
         {
             for (int i = 0; i < 4; i++)
             {
                 players[i] = new Player(i);
-                Add(players[i]);
+                sprites.Add(players[i]);
+                bodies.Add(players[i]);
+            }
+
+            for (int i = 0; i < 6; i++)
+            {
+                boosts[i] = new BoostPad(boostPositions[i]);
+                sprites.Add(boosts[i]);
             }
 
             ball = new Ball();
-            Add(ball);
+            sprites.Add(ball);
+            bodies.Add(ball);
 
             Reset();
         }
 
         public void Reset()
         {
-            players[0].position = new Vector2(100.0f, 100.0f);
-            players[1].position = new Vector2(100.0f, 100.0f);
-            players[2].position = new Vector2(100.0f, 100.0f);
-            players[3].position = new Vector2(100.0f, 100.0f);
+            ClientMain.countDownTime = 3.0f;
+
             for (int i = 0; i < 4; i++)
             {
+                players[i].position = startingPositions[i];
+                players[i].rotation = startingRotations[i];
                 players[i].velocity = Vector2.Zero;
             }
 
-            ball.position = new Vector2(200.0f, 150.0f);
+            for (int i = 0; i < 6; i++)
+            {
+                boosts[i].refillTime = BoostPad.refillDuration;
+            }
+
+            ball.position = Vector2.Zero;
             ball.velocity = Vector2.Zero;
-        }
-
-        public void Add(Sprite sprite)
-        {
-            sprites.Add(sprite);
-
-            if (sprite is Body) bodies.Add(sprite as Body);
         }
 
         public void Update(float deltaTime)
         {
+            if (deltaTime == 0.0f) return;
+
             foreach (Sprite sprite in sprites)
             {
                 if (sprite.isActive)
@@ -86,11 +122,17 @@ namespace SocketLeague
                 }
             }
 
-            foreach (Body body in bodies)
+            foreach (Player player in players)
             {
-                if (body.isActive)
+                if (player.isActive)
                 {
-                    body.Move();
+                    foreach (BoostPad boost in boosts)
+                    {
+                        if (boost.hasJuice)
+                        {
+                            Collision.PlayerToBoost(player, boost);
+                        }
+                    }
                 }
             }
         }

@@ -67,52 +67,93 @@ namespace SocketLeague
 
     public static class Stage
     {
+        public static Texture2D stageTexture;
+
         public static Texture2D circleTexture;
         public static Texture2D squareTexture;
 
         public static List<Collider> colliders = new List<Collider>
         {
-            new InvertedCircleCollider(GameWindow.REFERENCE_WIDTH / 2, GameWindow.REFERENCE_HEIGHT / 2, 100, CircleCorners.TopRight),
-            new SquareCollider(250, 150, 50, 75),
+            // Border
+            new SquareCollider(-480, -184,        960, 32),
+            new SquareCollider(-480, 184 - 32,    960, 32),
+            new SquareCollider(-340, -270,        48, 540),
+            new SquareCollider(340 - 48, -270,    48, 540),
+             
+            // Corner squares
+            new SquareCollider(-340, -184, 96, 144),
+            new SquareCollider(-340, 184 - 144, 96, 144),
+            new SquareCollider(340 - 96, -184, 96, 144),
+            new SquareCollider(340 - 96, 184 - 144, 96, 144),
+
+            // Corner circles
+            new InvertedCircleCollider(-172, -80, 72, CircleCorners.TopLeft),
+            new InvertedCircleCollider(172, -80, 72, CircleCorners.TopRight),
+            new InvertedCircleCollider(-172, 80, 72, CircleCorners.BottomLeft),
+            new InvertedCircleCollider(172, 80, 72, CircleCorners.BottomRight),
+
+            // Goal corner circles
+            new InvertedCircleCollider(-276, -24, 16, CircleCorners.TopLeft),
+            new InvertedCircleCollider(276, -24, 16, CircleCorners.TopRight),
+            new InvertedCircleCollider(-276, 24, 16, CircleCorners.BottomLeft),
+            new InvertedCircleCollider(276, 24, 16, CircleCorners.BottomRight),
         };
 
         public static void Draw(SpriteBatch spriteBatch)
         {
             foreach (Collider collider in colliders)
             {
-                if (collider is InvertedCircleCollider)
+                if (true)
                 {
-                    InvertedCircleCollider col = collider as InvertedCircleCollider;
-
                     spriteBatch.Draw
                     (
-                        circleTexture,
-                        new Vector2(col.x, col.y),
-                        circleTexture.Bounds,
-                        Color.DarkBlue,
+                        stageTexture,
+                        Vector2.Floor(-Vector2.Floor(Camera.position)),
+                        stageTexture.Bounds,
+                        Color.White,
                         0.0f,
-                        new Vector2(circleTexture.Width / 2, circleTexture.Height / 2),
-                        col.radius / 128.0f,
+                        new Vector2(stageTexture.Width / 2, stageTexture.Height / 2),
+                        Vector2.One,
                         SpriteEffects.None,
                         0.5f + -1000.0f / 10000f
                     );
                 }
-                else if (collider is SquareCollider)
+                if (false)
                 {
-                    SquareCollider col = collider as SquareCollider;
+                    if (collider is InvertedCircleCollider)
+                    {
+                        InvertedCircleCollider col = collider as InvertedCircleCollider;
 
-                    spriteBatch.Draw
-                    (
-                        squareTexture,
-                        new Vector2(col.x, col.y),
-                        squareTexture.Bounds,
-                        Color.Green,
-                        0.0f,
-                        new Vector2(0, 0),
-                        new Vector2(col.width, col.height),
-                        SpriteEffects.None,
-                        0.5f + 1000.0f / 10000f
-                    );
+                        spriteBatch.Draw
+                        (
+                            circleTexture,
+                            Vector2.Floor(new Vector2(col.x, col.y) - Vector2.Floor(Camera.position)),
+                            circleTexture.Bounds,
+                            Color.DarkBlue,
+                            0.0f,
+                            new Vector2(circleTexture.Width / 2, circleTexture.Height / 2),
+                            col.radius / 128.0f,
+                            SpriteEffects.None,
+                            0.5f + -1000.0f / 10000f
+                        );
+                    }
+                    else if (collider is SquareCollider)
+                    {
+                        SquareCollider col = collider as SquareCollider;
+
+                        spriteBatch.Draw
+                        (
+                            squareTexture,
+                            Vector2.Floor(new Vector2(col.x, col.y) - Vector2.Floor(Camera.position)),
+                            squareTexture.Bounds,
+                            Color.Green,
+                            0.0f,
+                            new Vector2(0, 0),
+                            new Vector2(col.width, col.height),
+                            SpriteEffects.None,
+                            0.5f + 1000.0f / 10000f
+                        );
+                    }
                 }
             }
         }

@@ -10,28 +10,16 @@ namespace SocketLeague
         private static KeyboardState keyboardState;
         private static KeyboardState lastKeyboardState;
 
-        private static GamePadState gamePadState;
-        private static GamePadState lastGamePadState;
-
-        public static bool usingController;
-
         public static void Update()
         {
             lastKeyboardState = keyboardState;
-            lastGamePadState = gamePadState;
 
             keyboardState = Keyboard.GetState();
-            gamePadState = GamePad.GetState(PlayerIndex.One);
-
-            if (keyboardState.GetPressedKeyCount() != lastKeyboardState.GetPressedKeyCount())
-                usingController = false;
-            if (gamePadState.PacketNumber != lastGamePadState.PacketNumber)
-                usingController = true;
         }
 
         public static bool Exit()
         {
-            return KeyDown(Keys.Escape) || ButtonDown(Buttons.A) || ButtonDown(Buttons.Y);
+            return KeyDown(Keys.Escape);
         }
 
         public static float Horizontal()
@@ -57,7 +45,7 @@ namespace SocketLeague
                 vertical -= 1.0f;
             if (KeyHeld(Keys.W))
                 vertical += 1.0f;
-            if (KeyHeld(Keys.D))
+            if (KeyHeld(Keys.S))
                 vertical -= 1.0f;
             return Math.Clamp(vertical, -1.0f, 1.0f);
         }
@@ -74,30 +62,6 @@ namespace SocketLeague
         public static bool KeyUp(Keys k)
         {
             return lastKeyboardState.IsKeyDown(k) && keyboardState.IsKeyUp(k);
-        }
-
-        //Button states
-        public static bool ButtonDown(Buttons b)
-        {
-            return gamePadState.IsButtonDown(b) && lastGamePadState.IsButtonUp(b);
-        }
-        public static bool ButtonHeld(Buttons b)
-        {
-            return gamePadState.IsButtonDown(b);
-        }
-        public static bool ButtonUp(Buttons b)
-        {
-            return gamePadState.IsButtonUp(b) && lastGamePadState.IsButtonDown(b);
-        }
-
-        //Stick states
-        public static Vector2 LeftStick()
-        {
-            return gamePadState.ThumbSticks.Left;
-        }
-        public static Vector2 RightStick()
-        {
-            return gamePadState.ThumbSticks.Right;
         }
     }
 }

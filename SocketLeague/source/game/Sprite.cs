@@ -10,7 +10,7 @@ namespace SocketLeague
         public Vector2 position;
         public float rotation;
         public Vector2 scale = Vector2.One;
-
+        public Color color = Color.White;
         public int sortingLayer;
 
         public bool isActive = true;
@@ -30,9 +30,9 @@ namespace SocketLeague
             spriteBatch.Draw
             (
                 texture,
-                position,
+                Vector2.Floor(position - Vector2.Floor(Camera.position)),
                 texture.Bounds,
-                Color.White,
+                color,
                 rotation,
                 new Vector2(texture.Width / 2, texture.Height / 2),
                 scale,

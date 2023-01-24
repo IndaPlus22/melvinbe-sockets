@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 
 namespace SocketLeague
@@ -11,7 +12,7 @@ namespace SocketLeague
         public const int REFERENCE_WIDTH = 480;
         public const int REFERENCE_HEIGHT = 270;
 
-        public static int pixelSize = 4;
+        public static int pixelSize = 2;
 
         public static int windowWidth = REFERENCE_WIDTH * pixelSize;
         public static int windowHeight = REFERENCE_HEIGHT * pixelSize;
@@ -28,8 +29,27 @@ namespace SocketLeague
             graphics.ApplyChanges();
         }
 
+        public static void ToggleFullscreen()
+        {
+            ToggleFullscreen(!graphics.IsFullScreen);
+        }
+
+        public static void ToggleFullscreen(bool fullscreen)
+        {
+            graphics.IsFullScreen = fullscreen;
+
+            graphics.PreferredBackBufferWidth = fullscreen ? GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width : windowWidth;
+            graphics.PreferredBackBufferHeight = fullscreen ? GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height : windowHeight;
+
+            graphics.ApplyChanges();
+
+            SetPixelSize();
+        }
+
         private static void OnResize(object sender, EventArgs e)
         {
+            if (graphics.IsFullScreen) return;
+
             window.ClientSizeChanged -= OnResize;
 
             windowWidth = Math.Max(window.ClientBounds.Width, REFERENCE_WIDTH);

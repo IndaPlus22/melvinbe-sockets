@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-
+using System;
 using System.Collections.Generic;
 
 namespace SocketLeague
@@ -10,9 +10,11 @@ namespace SocketLeague
     {
         public float radius;
 
-        public Vector2 velocity;
+        public float mass;
+        public float bounce;
+        public float drag;
 
-        public Vector2 potentialPosition;
+        public Vector2 velocity;
 
         public Body(Texture2D texture)
             : base(texture)
@@ -22,12 +24,9 @@ namespace SocketLeague
 
         public override void Update(float deltaTime)
         {
-            potentialPosition = position + velocity * deltaTime;
-        }
+            position += velocity * (float)(Math.Pow(drag, deltaTime * deltaTime) - 1.0f) / (deltaTime * (float)Math.Log2(drag));
 
-        public virtual void Move()
-        {
-            position = potentialPosition;
+            velocity *= (float)Math.Pow(drag, deltaTime);
         }
     }
 }

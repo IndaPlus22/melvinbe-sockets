@@ -52,3 +52,5 @@ C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\obj\Debug
 C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\obj\Debug\net6.0\ref\SocketLeague.dll
 C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\bin\Debug\net6.0\content\textures\direction_circle.xnb
 C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\bin\Debug\net6.0\content\textures\square.xnb
+C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\bin\Debug\net6.0\content\textures\stage.xnb
+C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\bin\Debug\net6.0\content\fonts\countdown_font.xnb

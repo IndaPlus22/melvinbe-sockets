@@ -14,9 +14,13 @@ namespace SocketLeague
         public Ball()
             : base(ballTexture)
         {
-            scale = new Vector2(0.1f);
+            scale = new Vector2(0.09f);
 
-            radius = 0.1f * 256.0f / 2.0f;
+            radius = 0.09f * 256.0f / 2.0f;
+
+            mass = 0.4f;
+            bounce = 0.8f;
+            drag = 0.70f;
         }
 
         public override void Update(float deltaTime)
