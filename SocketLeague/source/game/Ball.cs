@@ -45,8 +45,6 @@ namespace SocketLeague
             position.Y = BitConverter.ToSingle(data, 4);
             velocity.X = BitConverter.ToSingle(data, 8);
             velocity.Y = BitConverter.ToSingle(data, 12);
-
-            Debug.WriteLine(isActive);
         }
     }
 }

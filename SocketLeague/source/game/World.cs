@@ -85,6 +85,8 @@ namespace SocketLeague
 
             ball.position = Vector2.Zero;
             ball.velocity = Vector2.Zero;
+
+            Particles.Clear();
         }
 
         public void Update(float deltaTime)

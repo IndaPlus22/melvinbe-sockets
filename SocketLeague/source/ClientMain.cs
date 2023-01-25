@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -39,6 +38,8 @@ namespace SocketLeague
         public static float countDownTime;
         private SpriteFont countdownFont;
 
+        private Texture2D boostMeterTexture;
+
         public static World localGame;
 
         public ClientMain()
@@ -63,12 +64,14 @@ namespace SocketLeague
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             countdownFont = Content.Load<SpriteFont>("fonts/countdown_font");
+            boostMeterTexture = Content.Load<Texture2D>("textures/circle");
 
             Player.playerTexture = Content.Load<Texture2D>("textures/direction_circle");
             Ball.ballTexture = Content.Load<Texture2D>("textures/circle");
             BoostPad.boostPadTexture = Content.Load<Texture2D>("textures/circle");
-
+            Particles.boostTexture = Content.Load<Texture2D>("textures/circle");
             Stage.stageTexture = Content.Load<Texture2D>("textures/stage");
+
             Stage.circleTexture = Content.Load<Texture2D>("textures/circle");
             Stage.squareTexture = Content.Load<Texture2D>("textures/square");
 
@@ -89,8 +92,6 @@ namespace SocketLeague
                 {
                     int newID = BitConverter.ToInt32(data, 0);
                     
-                    Debug.WriteLine("Assigning new ID: " + newID);
-
                     localID = newID;
                     Camera.followTarget = localGame.players[newID];
 
@@ -101,14 +102,12 @@ namespace SocketLeague
                     int playerToUpdate = BitConverter.ToInt32(data, 0);
                     data = data.Skip(4).ToArray();
 
-                    Debug.WriteLine("Updating player: " + playerToUpdate);
                     localGame.players[playerToUpdate].SetData(data);
 
                     break;
                 }
                 case MsgTypes.SetBall:
                 {
-                    Debug.WriteLine("Updating ball");
                     localGame.ball.SetData(data);
 
                     break;
@@ -161,11 +160,6 @@ namespace SocketLeague
 
                 recievedSize -= 8 + dataSize;
 
-                if(msgType == MsgTypes.SetBall)
-                {
-                    Debug.WriteLine("here");
-                }
-
                 RecieveMessage(msgType, msgData);
             }
 
@@ -210,6 +204,8 @@ namespace SocketLeague
 
             localGame.Update(deltaTime);
 
+            Particles.Update(deltaTime);
+
             countDownTime -= deltaTime;
 
             Camera.Update(deltaTime);
@@ -226,15 +222,16 @@ namespace SocketLeague
 
             localGame.Draw(spriteBatch);
 
+            Particles.Draw(spriteBatch);
+
             Stage.Draw(spriteBatch);
 
             if (countDownTime > 0.0f)
             {
-                int number = (int)countDownTime + 1;
                 spriteBatch.DrawString
                 (
                     countdownFont,
-                    number.ToString(),
+                    ((int)countDownTime + 1).ToString(),
                     new Vector2(GameWindow.REFERENCE_WIDTH / 2, GameWindow.REFERENCE_HEIGHT / 4) + new Vector2(-10, -10),
                     Color.Gold,
                     0.0f,
@@ -242,6 +239,36 @@ namespace SocketLeague
                     Vector2.One,
                     SpriteEffects.None,
                     1.0f
+                );
+            }
+
+            if (localID != -1)
+            {
+                string drawString = ((int)(localGame.players[localID].boostAmount * 100.0f)).ToString();
+                spriteBatch.DrawString
+                (
+                    countdownFont,
+                    drawString,
+                    new Vector2(390 + drawString.Length * -5, 210),
+                    Color.Gold,
+                    0.0f,
+                    Vector2.Zero,
+                    new Vector2(0.5f),
+                    SpriteEffects.None,
+                    1.0f
+                );
+
+                spriteBatch.Draw
+                (
+                    boostMeterTexture,
+                    new Vector2(394, 222),
+                    boostMeterTexture.Bounds,
+                    Color.White,
+                    0,
+                    new Vector2(boostMeterTexture.Width / 2, boostMeterTexture.Height / 2),
+                    0.2f,
+                    SpriteEffects.None,
+                    0.99f
                 );
             }
 
