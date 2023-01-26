@@ -20,12 +20,16 @@ namespace SocketLeague
         public Vector2 velocity;
         public float scale;
 
-        public BoostParticle(Vector2 position, Vector2 velocity)
+        public Color color;
+
+        public BoostParticle(Vector2 position, Vector2 velocity, Color color)
         {
             lifeTime = 0.0f;
             this.position = position;
             this.velocity = velocity;
             scale = minScale;
+
+            this.color = color;
         }
     }
 
@@ -41,9 +45,9 @@ namespace SocketLeague
         }
 
         // Creates a new particle with specified values
-        public static void AddBoostParticle(Vector2 position, Vector2 velocity)
+        public static void AddBoostParticle(Vector2 position, Vector2 velocity, Color color)
         {
-            BoostParticle newParticle = new BoostParticle(position, velocity);
+            BoostParticle newParticle = new BoostParticle(position, velocity, color);
 
             boostParticles.Add(newParticle);
         }
@@ -80,12 +84,12 @@ namespace SocketLeague
                     boostTexture,
                     Vector2.Floor(particle.position - Vector2.Floor(Camera.position)),
                     boostTexture.Bounds,
-                    Color.White,
+                    particle.color,
                     0.0f,
                     new Vector2(boostTexture.Width / 2, boostTexture.Height / 2),
                     particle.scale,
                     SpriteEffects.None,
-                    0.5f + 0.0f / 10000f
+                    0.5f + 100.0f / 10000f
                 );
             }
         }

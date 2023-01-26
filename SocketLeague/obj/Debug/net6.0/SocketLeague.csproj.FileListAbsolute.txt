@@ -56,3 +56,6 @@ C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\bin\Debug
 C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\bin\Debug\net6.0\content\textures\ball.xnb
 C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\bin\Debug\net6.0\content\textures\blue_car.xnb
 C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\bin\Debug\net6.0\content\textures\orange_car.xnb
+C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\bin\Debug\net6.0\content\textures\boost_background.xnb
+C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\bin\Debug\net6.0\content\textures\orb.xnb
+C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\bin\Debug\net6.0\content\textures\drained_orb.xnb

@@ -14,8 +14,10 @@ namespace SocketLeague
         public Ball()
             : base(ballTexture)
         {
+            sortingLayer = 10;
+
             // Set physics properties
-            radius = 11.5f;
+            radius = 13.0f;
             mass   = 0.4f;
             bounce = 0.8f;
             drag   = 0.7f;

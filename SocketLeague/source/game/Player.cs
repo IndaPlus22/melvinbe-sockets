@@ -13,6 +13,9 @@ namespace SocketLeague
         public static Texture2D bluePlayerTexture;
         public static Texture2D orangePlayerTexture;
 
+        private static Color orangeParticleColor = new Color(251, 242, 54, 255);
+        private static Color blueParticleColor   = new Color(95, 205, 228, 255);
+
         // Connects players to respective client
         public int ID;
 
@@ -47,8 +50,10 @@ namespace SocketLeague
         {
             this.ID = ID;
 
+            sortingLayer = ID;
+
             // Set physics properties
-            radius = 10.0f;
+            radius = 11.0f;
             mass   = 1.0f;
             bounce = 0.4f;
             drag   = 0.9f;
@@ -206,7 +211,9 @@ namespace SocketLeague
                 Vector2 velOffset = new Vector2((float)random.NextDouble(), (float)random.NextDouble());
                 velOffset.Normalize();
 
-                Particles.AddBoostParticle(position + posOffset, (Vector2.Normalize(-velocity) + velOffset * 0.5f) * 30.0f);
+                Color boostColor = ID % 2 == 0 ? orangeParticleColor : blueParticleColor;
+
+                Particles.AddBoostParticle(position + posOffset, (Vector2.Normalize(-velocity) + velOffset * 0.5f) * 30.0f, boostColor);
 
                 boostParticleTime -= boostParticleDelay;
             }

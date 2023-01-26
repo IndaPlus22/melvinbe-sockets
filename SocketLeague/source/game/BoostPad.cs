@@ -6,6 +6,7 @@ namespace SocketLeague
     public class BoostPad : Sprite
     {
         public static Texture2D boostPadTexture;
+        public static Texture2D drainedBoostPadTexture;
 
         public const float radius = 10.0f;
 
@@ -20,22 +21,15 @@ namespace SocketLeague
         {
             this.position = position;
 
-            scale = new Vector2(0.1f);
+            sortingLayer = -10;
         }
 
         public override void Update(float deltaTime)
         {
             hasJuice = refillTime >= refillDuration;
 
-            // Change texture if has juice or not
-            if (hasJuice)
-            {
-                color = Color.Gold;
-            }
-            else
-            {
-                color = Color.Black;
-            }
+            // Change texture to if has juice or not
+            texture = hasJuice ? boostPadTexture : drainedBoostPadTexture;
 
             refillTime += deltaTime;
         }

@@ -188,7 +188,6 @@ namespace Server
 
             // Size of all messages together in socket
             int recievedSize = 0;
-
             try
             {
                 recievedSize = socket.EndReceive(ar);

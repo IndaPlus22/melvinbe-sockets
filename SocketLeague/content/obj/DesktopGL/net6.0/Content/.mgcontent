@@ -7,12 +7,18 @@
     <File>C:/Users/melvi/Documents/GitHub/IndaPlus/melvinbe-sockets/SocketLeague/content/fonts/countdown_font.spritefont</File>
     <File>C:/Users/melvi/Documents/GitHub/IndaPlus/melvinbe-sockets/SocketLeague/content/textures/ball.png</File>
     <File>C:/Users/melvi/Documents/GitHub/IndaPlus/melvinbe-sockets/SocketLeague/content/textures/blue_car.png</File>
+    <File>C:/Users/melvi/Documents/GitHub/IndaPlus/melvinbe-sockets/SocketLeague/content/textures/boost_background.png</File>
     <File>C:/Users/melvi/Documents/GitHub/IndaPlus/melvinbe-sockets/SocketLeague/content/textures/circle.png</File>
+    <File>C:/Users/melvi/Documents/GitHub/IndaPlus/melvinbe-sockets/SocketLeague/content/textures/drained_orb.png</File>
     <File>C:/Users/melvi/Documents/GitHub/IndaPlus/melvinbe-sockets/SocketLeague/content/textures/orange_car.png</File>
+    <File>C:/Users/melvi/Documents/GitHub/IndaPlus/melvinbe-sockets/SocketLeague/content/textures/orb.png</File>
     <File>C:/Users/melvi/Documents/GitHub/IndaPlus/melvinbe-sockets/SocketLeague/content/textures/square.png</File>
     <File>C:/Users/melvi/Documents/GitHub/IndaPlus/melvinbe-sockets/SocketLeague/content/textures/stage.png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

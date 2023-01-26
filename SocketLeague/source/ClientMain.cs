@@ -54,11 +54,141 @@ namespace SocketLeague
 
         // UI content:
         public static float countDownTime;
-        private SpriteFont countdownFont;
+        private SpriteFont font;
         private Texture2D boostMeterTexture;
 
         // Local game World
         public static World localGame;
+
+        // Callback for when client connects
+        private static void ConnectCallback(IAsyncResult ar)
+        {
+            // Done connecting
+            connecting = false;
+            try
+            {
+                serverSocket = (Socket)ar.AsyncState;
+
+                serverSocket.EndConnect(ar);
+
+                serverSocket.BeginReceive(recievedBuffer, 0, recievedBuffer.Length, SocketFlags.None, new AsyncCallback(RecieveCallback), serverSocket);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.ToString());
+            }
+        }
+
+        // Decides what to do with recieved and formatted message
+        public static void RecieveMessage(MsgTypes msgType, byte[] data)
+        {
+            switch (msgType)
+            {
+                case MsgTypes.ResetGame:
+                    {
+                        localGame.Reset();
+
+                        break;
+                    }
+                case MsgTypes.AssignID:
+                    {
+                        int newID = BitConverter.ToInt32(data, 0);
+
+                        localID = newID;
+
+                        Camera.followTarget = localGame.players[newID];
+
+                        break;
+                    }
+                case MsgTypes.SetPlayer:
+                    {
+                        int playerToUpdate = BitConverter.ToInt32(data, 0);
+                        data = data.Skip(4).ToArray();
+
+                        localGame.players[playerToUpdate].SetData(data);
+
+                        break;
+                    }
+                case MsgTypes.SetBall:
+                    {
+                        localGame.ball.SetData(data);
+
+                        break;
+                    }
+            }
+        }
+
+        // Callback for recieving messages
+        private static void RecieveCallback(IAsyncResult ar)
+        {
+            if (ar.AsyncState == null) return;
+            Socket socket = (Socket)ar.AsyncState;
+
+            // Size of all messages together in socket
+            int recievedSize = 0;
+            try
+            {
+                recievedSize = socket.EndReceive(ar);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("Connection Lost...");
+                Debug.WriteLine(e.ToString());
+                connectionLost = true;
+            }
+
+            // Copy recieved buffer into data buffer
+            byte[] data = new byte[recievedSize];
+            Array.Copy(recievedBuffer, data, recievedSize);
+
+            // While there still are messages to read
+            while (recievedSize > 0)
+            {
+                // Extract message information:
+                int dataSize = BitConverter.ToInt32(data, 0);
+                MsgTypes msgType = (MsgTypes)BitConverter.ToInt32(data, 4);
+                data = data.Skip(8).ToArray();
+
+                byte[] msgData = data.Take(dataSize).ToArray();
+                data = data.Skip(dataSize).ToArray();
+
+                // There is now this much less message to read
+                recievedSize -= 8 + dataSize;
+
+                // Decide what to do with message
+                RecieveMessage(msgType, msgData);
+            }
+
+            // Look for more messages to recieve
+            socket.BeginReceive(recievedBuffer, 0, recievedBuffer.Length, SocketFlags.None, new AsyncCallback(RecieveCallback), socket);
+        }
+
+        // Function for constructing and sending messages
+        public static void SendMessage(MsgTypes msgType, byte[] data)
+        {
+            // Add "meta" data to front of message, including client ID
+            List<byte> buffer = new List<byte>();
+            buffer.AddRange(BitConverter.GetBytes(localID));
+            buffer.AddRange(BitConverter.GetBytes(data.Length));
+            buffer.AddRange(BitConverter.GetBytes((int)msgType));
+            buffer.AddRange(data);
+
+            clientSocket.BeginSend(buffer.ToArray(), 0, buffer.Count, SocketFlags.None, new AsyncCallback(SendCallback), clientSocket);
+        }
+
+        // Callback for sent messages
+        private static void SendCallback(IAsyncResult ar)
+        {
+            Socket socket = (Socket)ar.AsyncState;
+            try
+            {
+                socket.EndSend(ar);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
 
         public ClientMain()
         {
@@ -84,14 +214,15 @@ namespace SocketLeague
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // UI
-            countdownFont = Content.Load<SpriteFont>("fonts/countdown_font");
-            boostMeterTexture = Content.Load<Texture2D>("textures/circle");
+            font = Content.Load<SpriteFont>("fonts/countdown_font");
+            boostMeterTexture = Content.Load<Texture2D>("textures/boost_background");
 
             // Everything else
             Player.bluePlayerTexture = Content.Load<Texture2D>("textures/blue_car");
             Player.orangePlayerTexture = Content.Load<Texture2D>("textures/orange_car");
             Ball.ballTexture = Content.Load<Texture2D>("textures/ball");
-            BoostPad.boostPadTexture = Content.Load<Texture2D>("textures/circle");
+            BoostPad.boostPadTexture = Content.Load<Texture2D>("textures/orb");
+            BoostPad.drainedBoostPadTexture = Content.Load<Texture2D>("textures/drained_orb");
             Particles.boostTexture = Content.Load<Texture2D>("textures/circle");
             Stage.stageTexture = Content.Load<Texture2D>("textures/stage");
 
@@ -102,129 +233,13 @@ namespace SocketLeague
             localGame = new World();
         }
 
-        // Decides what to do with recieved and formatted message
-        public static void RecieveMessage(MsgTypes msgType, byte[] data)
-        {
-            switch (msgType)
-            {
-                case MsgTypes.ResetGame:
-                {
-                    localGame.Reset();
-
-                    break;
-                }
-                case MsgTypes.AssignID:
-                {
-                    int newID = BitConverter.ToInt32(data, 0);
-                    
-                    localID = newID;
-
-                    Camera.followTarget = localGame.players[newID];
-
-                    break;
-                }
-                case MsgTypes.SetPlayer:
-                {
-                    int playerToUpdate = BitConverter.ToInt32(data, 0);
-                    data = data.Skip(4).ToArray();
-
-                    localGame.players[playerToUpdate].SetData(data);
-
-                    break;
-                }
-                case MsgTypes.SetBall:
-                {
-                    localGame.ball.SetData(data);
-
-                    break;
-                }
-            }
-        }
-
-        // Callback for when client connects
-        private static void ConnectCallback(IAsyncResult ar)
-        {
-            // Done connecting
-            connecting = false;
-            try
-            {
-                serverSocket = (Socket)ar.AsyncState;
-
-                serverSocket.EndConnect(ar);
-
-                serverSocket.BeginReceive(recievedBuffer, 0, recievedBuffer.Length, SocketFlags.None, new AsyncCallback(RecieveCallback), serverSocket);
-            } 
-            catch (Exception e)
-            {
-                Debug.WriteLine(e.ToString());
-            }
-        }
-
-        // Callback for recieving messages
-        private static void RecieveCallback(IAsyncResult ar)
-        {
-            if (ar.AsyncState == null) return;
-            Socket socket = (Socket)ar.AsyncState;
-
-            int recievedSize = 0;
-            try
-            {
-                recievedSize = socket.EndReceive(ar);
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine("Connection Lost...");
-                Debug.WriteLine(e.ToString());
-                connectionLost = true;
-            }
-            byte[] data = new byte[recievedSize];
-            Array.Copy(recievedBuffer, data, recievedSize);
-
-            while (recievedSize > 0)
-            {
-                int dataSize = BitConverter.ToInt32(data, 0);
-                MsgTypes msgType = (MsgTypes)BitConverter.ToInt32(data, 4);
-                data = data.Skip(8).ToArray();
-
-                byte[] msgData = data.Take(dataSize).ToArray();
-                data = data.Skip(dataSize).ToArray();
-
-                recievedSize -= 8 + dataSize;
-
-                RecieveMessage(msgType, msgData);
-            }
-
-            socket.BeginReceive(recievedBuffer, 0, recievedBuffer.Length, SocketFlags.None, new AsyncCallback(RecieveCallback), socket);
-        }
-
-        // Function for constructing and sending messages
-        public static void SendMessage(MsgTypes msgType, byte[] data)
-        {
-            List<byte> buffer = new List<byte>();
-            buffer.AddRange(BitConverter.GetBytes(localID));
-            buffer.AddRange(BitConverter.GetBytes(data.Length));
-            buffer.AddRange(BitConverter.GetBytes((int)msgType));
-            buffer.AddRange(data);
-
-            clientSocket.BeginSend(buffer.ToArray(), 0, buffer.Count, SocketFlags.None, new AsyncCallback(SendCallback), clientSocket);
-        }
-
-        // Callback for sent messages
-        private static void SendCallback(IAsyncResult ar)
-        {
-            Socket socket = (Socket)ar.AsyncState;
-            socket.EndSend(ar);
-        }
-
         protected override void Update(GameTime gameTime)
         {
-            if (!clientSocket.Connected)
+            // if not connected and not currently looking for connection, start connecting
+            if (!clientSocket.Connected && !connecting)
             {
-                if (!connecting)
-                {
-                    clientSocket.BeginConnect(IPAddress.Loopback, 100, ConnectCallback, clientSocket);
-                    connecting = true;
-                }
+                clientSocket.BeginConnect(IPAddress.Loopback, 100, ConnectCallback, clientSocket);
+                connecting = true;
             }
 
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -248,6 +263,7 @@ namespace SocketLeague
 
         protected override void Draw(GameTime gameTime)
         {
+            // Draw everything to hidden texture
             GraphicsDevice.SetRenderTarget(nativeRenderTarget);
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
@@ -259,11 +275,12 @@ namespace SocketLeague
 
             Stage.Draw(spriteBatch);
 
+            // Draw countdown
             if (countDownTime > 0.0f)
             {
                 spriteBatch.DrawString
                 (
-                    countdownFont,
+                    font,
                     ((int)countDownTime + 1).ToString(),
                     new Vector2(Screen.REFERENCE_WIDTH / 2, Screen.REFERENCE_HEIGHT / 4) + new Vector2(-10, -10),
                     Color.Gold,
@@ -277,12 +294,13 @@ namespace SocketLeague
 
             if (localID != -1)
             {
+                // Draw boost gauge:
                 string drawString = ((int)(localGame.players[localID].boostAmount * 100.0f)).ToString();
                 spriteBatch.DrawString
                 (
-                    countdownFont,
+                    font,
                     drawString,
-                    new Vector2(390 + drawString.Length * -5, 210),
+                    new Vector2(388 + drawString.Length * -6, 208),
                     Color.Gold,
                     0.0f,
                     Vector2.Zero,
@@ -299,7 +317,7 @@ namespace SocketLeague
                     Color.White,
                     0,
                     new Vector2(boostMeterTexture.Width / 2, boostMeterTexture.Height / 2),
-                    0.2f,
+                    1.0f,
                     SpriteEffects.None,
                     0.99f
                 );
@@ -310,8 +328,11 @@ namespace SocketLeague
             GraphicsDevice.SetRenderTarget(null);
             GraphicsDevice.Clear(Color.Black);
 
-            spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+            // Draw the hidden texture to screen:
 
+            spriteBatch.Begin(samplerState: SamplerState.PointClamp); // PointClamp for pixel art
+
+            // Center texture
             Rectangle screenRect = nativeRenderTarget.Bounds;
             Vector2 screenCenter = Vector2.Floor(new Vector2(Window.ClientBounds.Width, Window.ClientBounds.Height) / 2);
             Vector2 screenOrigin = Vector2.Floor(new Vector2(Screen.REFERENCE_WIDTH, Screen.REFERENCE_HEIGHT) / 2);
