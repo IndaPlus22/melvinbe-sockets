@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,20 +14,14 @@ namespace SocketLeague
         public Ball()
             : base(ballTexture)
         {
-            scale = new Vector2(0.09f);
-
-            radius = 0.09f * 256.0f / 2.0f;
-
-            mass = 0.4f;
+            // Set physics properties
+            radius = 11.5f;
+            mass   = 0.4f;
             bounce = 0.8f;
-            drag = 0.70f;
+            drag   = 0.7f;
         }
 
-        public override void Update(float deltaTime)
-        {
-            base.Update(deltaTime);
-        }
-
+        // Converts important ball values to byte array
         public byte[] GetData()
         {
             List<byte> data = new List<byte>();
@@ -39,6 +33,7 @@ namespace SocketLeague
             return data.ToArray();
         }
 
+        // Converts byte array to important ball values
         public void SetData(byte[] data)
         {
             position.X = BitConverter.ToSingle(data, 0);

@@ -50,7 +50,9 @@ C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\obj\Debug
 C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\obj\Debug\net6.0\SocketLeague.pdb
 C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\obj\Debug\net6.0\SocketLeague.genruntimeconfig.cache
 C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\obj\Debug\net6.0\ref\SocketLeague.dll
-C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\bin\Debug\net6.0\content\textures\direction_circle.xnb
 C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\bin\Debug\net6.0\content\textures\square.xnb
 C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\bin\Debug\net6.0\content\textures\stage.xnb
 C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\bin\Debug\net6.0\content\fonts\countdown_font.xnb
+C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\bin\Debug\net6.0\content\textures\ball.xnb
+C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\bin\Debug\net6.0\content\textures\blue_car.xnb
+C:\Users\melvi\Documents\GitHub\IndaPlus\melvinbe-sockets\SocketLeague\bin\Debug\net6.0\content\textures\orange_car.xnb

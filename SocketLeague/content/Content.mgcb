@@ -20,6 +20,30 @@
 /processorParam:TextureFormat=Compressed
 /build:fonts/countdown_font.spritefont
 
+#begin textures/ball.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:textures/ball.png
+
+#begin textures/blue_car.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:textures/blue_car.png
+
 #begin textures/circle.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -32,7 +56,7 @@
 /processorParam:TextureFormat=Color
 /build:textures/circle.png
 
-#begin textures/direction_circle.png
+#begin textures/orange_car.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -42,7 +66,7 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:textures/direction_circle.png
+/build:textures/orange_car.png
 
 #begin textures/square.png
 /importer:TextureImporter

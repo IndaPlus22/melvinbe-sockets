@@ -14,8 +14,21 @@ using System.Threading;
 
 namespace SocketLeague
 {
+    // Structure of message when sent as byte[]:
+    // [ size (int) | type (int) | data (byte[]) ]
+    public enum MsgTypes
+    {
+        ResetGame = 0,
+        AssignID = 1,
+        SetPlayer = 2,
+        SetBall = 3,
+    }
+
     public class ClientMain : Game
     {
+        // Networking variables:
+
+        // This is where recieved messages end up when retrieved from socket
         private static byte[] recievedBuffer = new byte[4096];
 
         private static Socket clientSocket = new Socket(
@@ -24,22 +37,27 @@ namespace SocketLeague
             ProtocolType.Tcp);
         private static Socket serverSocket;
 
+        // true while looking for server connection
         private static bool connecting;
 
+        // Flag that is set when connection to server is lost. Causes game to exit
         private static bool connectionLost;
 
         public static int localID = -1;
 
+        // Game variables:
+
+        // Graphics:
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
-
         private RenderTarget2D nativeRenderTarget;
 
+        // UI content:
         public static float countDownTime;
         private SpriteFont countdownFont;
-
         private Texture2D boostMeterTexture;
 
+        // Local game World
         public static World localGame;
 
         public ClientMain()
@@ -53,8 +71,10 @@ namespace SocketLeague
 
         protected override void Initialize()
         {
-            nativeRenderTarget = new RenderTarget2D(GraphicsDevice, GameWindow.REFERENCE_WIDTH, GameWindow.REFERENCE_HEIGHT);
-            GameWindow.Initialize(graphics, Window);
+            // Create render target with dimensions in game pixels
+            nativeRenderTarget = new RenderTarget2D(GraphicsDevice, Screen.REFERENCE_WIDTH, Screen.REFERENCE_HEIGHT);
+
+            Screen.Initialize(graphics, Window);
 
             base.Initialize();
         }
@@ -63,21 +83,26 @@ namespace SocketLeague
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
+            // UI
             countdownFont = Content.Load<SpriteFont>("fonts/countdown_font");
             boostMeterTexture = Content.Load<Texture2D>("textures/circle");
 
-            Player.playerTexture = Content.Load<Texture2D>("textures/direction_circle");
-            Ball.ballTexture = Content.Load<Texture2D>("textures/circle");
+            // Everything else
+            Player.bluePlayerTexture = Content.Load<Texture2D>("textures/blue_car");
+            Player.orangePlayerTexture = Content.Load<Texture2D>("textures/orange_car");
+            Ball.ballTexture = Content.Load<Texture2D>("textures/ball");
             BoostPad.boostPadTexture = Content.Load<Texture2D>("textures/circle");
             Particles.boostTexture = Content.Load<Texture2D>("textures/circle");
             Stage.stageTexture = Content.Load<Texture2D>("textures/stage");
 
+            // Stage collider debug textures
             Stage.circleTexture = Content.Load<Texture2D>("textures/circle");
             Stage.squareTexture = Content.Load<Texture2D>("textures/square");
 
             localGame = new World();
         }
 
+        // Decides what to do with recieved and formatted message
         public static void RecieveMessage(MsgTypes msgType, byte[] data)
         {
             switch (msgType)
@@ -93,6 +118,7 @@ namespace SocketLeague
                     int newID = BitConverter.ToInt32(data, 0);
                     
                     localID = newID;
+
                     Camera.followTarget = localGame.players[newID];
 
                     break;
@@ -115,8 +141,10 @@ namespace SocketLeague
             }
         }
 
+        // Callback for when client connects
         private static void ConnectCallback(IAsyncResult ar)
         {
+            // Done connecting
             connecting = false;
             try
             {
@@ -132,9 +160,12 @@ namespace SocketLeague
             }
         }
 
+        // Callback for recieving messages
         private static void RecieveCallback(IAsyncResult ar)
         {
+            if (ar.AsyncState == null) return;
             Socket socket = (Socket)ar.AsyncState;
+
             int recievedSize = 0;
             try
             {
@@ -166,6 +197,7 @@ namespace SocketLeague
             socket.BeginReceive(recievedBuffer, 0, recievedBuffer.Length, SocketFlags.None, new AsyncCallback(RecieveCallback), socket);
         }
 
+        // Function for constructing and sending messages
         public static void SendMessage(MsgTypes msgType, byte[] data)
         {
             List<byte> buffer = new List<byte>();
@@ -177,6 +209,7 @@ namespace SocketLeague
             clientSocket.BeginSend(buffer.ToArray(), 0, buffer.Count, SocketFlags.None, new AsyncCallback(SendCallback), clientSocket);
         }
 
+        // Callback for sent messages
         private static void SendCallback(IAsyncResult ar)
         {
             Socket socket = (Socket)ar.AsyncState;
@@ -200,7 +233,7 @@ namespace SocketLeague
 
             if (Input.Exit() || connectionLost) Exit();
 
-            if (Input.KeyDown(Keys.F)) GameWindow.ToggleFullscreen();
+            if (Input.KeyDown(Keys.F)) Screen.ToggleFullscreen();
 
             localGame.Update(deltaTime);
 
@@ -232,7 +265,7 @@ namespace SocketLeague
                 (
                     countdownFont,
                     ((int)countDownTime + 1).ToString(),
-                    new Vector2(GameWindow.REFERENCE_WIDTH / 2, GameWindow.REFERENCE_HEIGHT / 4) + new Vector2(-10, -10),
+                    new Vector2(Screen.REFERENCE_WIDTH / 2, Screen.REFERENCE_HEIGHT / 4) + new Vector2(-10, -10),
                     Color.Gold,
                     0.0f,
                     Vector2.Zero,
@@ -281,7 +314,7 @@ namespace SocketLeague
 
             Rectangle screenRect = nativeRenderTarget.Bounds;
             Vector2 screenCenter = Vector2.Floor(new Vector2(Window.ClientBounds.Width, Window.ClientBounds.Height) / 2);
-            Vector2 screenOrigin = Vector2.Floor(new Vector2(GameWindow.REFERENCE_WIDTH, GameWindow.REFERENCE_HEIGHT) / 2);
+            Vector2 screenOrigin = Vector2.Floor(new Vector2(Screen.REFERENCE_WIDTH, Screen.REFERENCE_HEIGHT) / 2);
 
             spriteBatch.Draw
             (
@@ -291,7 +324,7 @@ namespace SocketLeague
                 Color.White, 
                 0.0f, 
                 screenOrigin, 
-                GameWindow.pixelSize, 
+                Screen.pixelSize, 
                 SpriteEffects.None, 
                 0.0f
             );

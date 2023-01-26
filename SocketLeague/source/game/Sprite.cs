@@ -8,10 +8,10 @@ namespace SocketLeague
         public Texture2D texture;
 
         public Vector2 position;
-        public float rotation;
+        public float   rotation;
         public Vector2 scale = Vector2.One;
-        public Color color = Color.White;
-        public int sortingLayer;
+        public Color   color = Color.White;
+        public int     sortingLayer; // Determines drawing order
 
         public bool isActive = true;
 
