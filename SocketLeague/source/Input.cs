@@ -18,11 +18,6 @@ namespace SocketLeague
             keyboardState = Keyboard.GetState();
         }
 
-        public static bool Exit()
-        {
-            return KeyDown(Keys.Escape);
-        }
-
         // Input on horizontal axis
         public static float Horizontal()
         {

@@ -1,16 +1,13 @@
 ﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 
 namespace SocketLeague
 {
@@ -238,7 +235,8 @@ namespace SocketLeague
             // if not connected and not currently looking for connection, start connecting
             if (!clientSocket.Connected && !connecting)
             {
-                clientSocket.BeginConnect(IPAddress.Loopback, 100, ConnectCallback, clientSocket);
+                // This IP adress can be changed to server IP address
+                clientSocket.BeginConnect(IPAddress.Parse("127.0.0.1"), 100, ConnectCallback, clientSocket);
                 connecting = true;
             }
 
@@ -246,7 +244,7 @@ namespace SocketLeague
 
             Input.Update();
 
-            if (Input.Exit() || connectionLost) Exit();
+            if (Input.KeyDown(Keys.Escape) || connectionLost) Exit();
 
             if (Input.KeyDown(Keys.F)) Screen.ToggleFullscreen();
 
